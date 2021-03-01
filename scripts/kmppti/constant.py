@@ -1,0 +1,2 @@
+CUSTOMER = 0
+PRODUCT = 1

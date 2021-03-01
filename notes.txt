@@ -1,0 +1,21 @@
+python main.py [approach_type] [c_file] [p_file] [k] [time_start] [time_end]
+
+--------------------------------------------------------
+what?
+Time-interval based product selection query
+
+base method: kmpp (dynamic skyline, reverse skyline)
+data structure: grid
+
+method: KMPP based on Time Intervals (KMPPTI)
+
+evaluation:
+Performance study - different approaches of processing k-MPPTI
+Variation of KMPP:
+  SRONDTI (Serial RSL + Online DSL) 
+  SROFDTI (Serial RSL + Offline DSL) --> baseline
+  PRONDTI (Parallel RSL + Online DSL) --> straightforward
+  PROFDTI (Parallel RSL + Offline DSL)
+
+membandingkan efektifitas dgn metode lain dengan membandingkan market contribution, influence score, % valued customers
+

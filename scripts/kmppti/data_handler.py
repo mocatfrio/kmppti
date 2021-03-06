@@ -4,17 +4,20 @@ from prettyprinter import pprint
 
 from kmppti.constant import PRODUCT, CUSTOMER
 
-SCORE = 0
-TS = 1
+VAL = 0
+DOMINATED = 1
+ID_ARR = 0
+VAL_ARR = 1
+DOM_ARR = 2
 
 class Data:
     def __init__(self, c_file, p_file, time_start=None, time_end=None):
         self.timestamp = []
-        self.name = []
+        self.name = {}
         self.value = []
-        self.p_size = 0
-        self.__import(c_file, CUSTOMER, time_start, time_end)
         self.__import(p_file, PRODUCT, time_start, time_end)
+        self.p_size = len(self.name)
+        self.__import(c_file, CUSTOMER, time_start, time_end)
         self.__sort()
 
     """
@@ -36,11 +39,10 @@ class Data:
                 data_id = self.__set_name(col[0])
                 self.__set_value(col[3:])
                 self.__set_timestamp(col[1:3], data_id, data_type)
-                self.p_size += data_type        # count product data 
     
     def __set_name(self, name):
         data_id = len(self.name)
-        self.name.append(name)
+        self.name[data_id] = name
         return data_id
     
     def __set_value(self, value):
@@ -51,8 +53,15 @@ class Data:
             self.timestamp.append([int(ts[flag]), data_id, data_type, flag])
 
     def __sort(self):
-        arr = np.array(self.timestamp)
-        self.timestamp = arr[arr[:, 0].argsort()].tolist()
+        arr = list(map(tuple, self.timestamp)) 
+        dt = np.dtype([("ts", np.int32), ("id", np.int32), ("data_type", np.int32), ("act_type", np.int32)])
+        arr = np.array(arr, dtype=dt)
+        self.timestamp = list(map(list, np.sort(arr, order=["ts", "act_type"]).tolist()))
+
+    def print(self):
+        pprint(self.timestamp)
+        # pprint(self.name)
+        # pprint(self.value)
     
     """
     Public function
@@ -80,6 +89,9 @@ class Data:
     
     def get_p_size(self):
         return self.p_size
+    
+    def get_label(self):
+        return self.name
     
 
 class Grid:
@@ -146,18 +158,16 @@ class Grid:
         return self.grid[obj_pos][obj_type][obj_id]
 
     def get_data(self, data_type, space=None):
+        result = {}
         if not space:
             space = self.get_filled_pos()
         if isinstance(space, tuple):
             space = [space]
         space = list(set(space).intersection(set(self.get_filled_pos())))
-        if not space:
-            return None
+        if not space: return result
         cand = [self.grid[pos][data_type] for pos in space]
-        cand_flatten = {k: v for d in cand for k, v in d.items()}
-        if not cand_flatten: 
-            return None
-        return cand_flatten
+        result = {k: v for d in cand for k, v in d.items()}
+        return result
     
     def get_neighbor(self, pos, excluded_space):
         axis = []
@@ -176,59 +186,67 @@ class Grid:
 
     
 class PandoraBox:
-    def __init__(self, max_ts, p_size):
+    def __init__(self, max_ts, p_size, record):
         self.pbox = [[0 for ts in range(max_ts)] for p in range(p_size)]
-        self.record = {}
-
-    """
-    Public Functions
-    """
-
-    def insert(self, c_id, ts, dsl_result):
-        # calculate score
-        score = self.__calc_score(dsl_result)
-        for p_id in dsl_result:
-            self.__update_pbox(p_id, ts, score)
-        self.__update_record(c_id, ts, dsl_result, score)
-        print("INSERT")
-        self.__print_pbox()
-        pprint(self.record)
+        self.record = record
     
+    def get(self):
+        return self.pbox
+
     def update(self, now_ts, c_id=None):
-        if c_id:
+        if c_id: 
             c_keys = [c_id]
-        else:
-            c_keys = list(self.record.keys())
+        else: 
+            c_keys = self.record.get_cid() 
         for c_id in c_keys:
-            for p_id in self.record[c_id]:
-                while self.record[c_id][p_id][TS] < now_ts:
-                    print("now_ts: ", now_ts)
-                    self.record[c_id][p_id][TS] += 1
-                    self.__update_pbox(p_id, self.record[c_id][p_id][TS], self.record[c_id][p_id][SCORE])
-        print("UPDATE")
-        self.__print_pbox()
-        pprint(self.record)
-
-    def remove_record(self, c_id, ts):
-        self.update(ts, c_id)
-        self.record.pop(c_id, None)
-
-    def __calc_score(self, dsl_result):
-        if dsl_result:
-            return 1/len(dsl_result)
-        return 0
-
-    def __update_record(self, c_id, ts, dsl_result, score):
-        if c_id not in self.record:
-            self.record[c_id] = {}
-        self.record[c_id].update({p_id: [score, ts] for p_id in dsl_result})
-
-    def __update_pbox(self, p_id, ts, score):
-        p_id -= len(self.pbox)
-        self.pbox[p_id][ts - 1] += score
-
-    def __print_pbox(self):
+            dsl_result = self.record.get_pid_dsl(c_id)
+            for p_id in dsl_result:
+                score = 1/len(dsl_result)
+                # now_ts - 1 because ts start from 1 (assumption)
+                self.pbox[p_id][now_ts - 1] += score
+    
+    def print(self):
         for pb in self.pbox:
             print(pb)
 
+
+class Record:
+    def __init__(self):
+        self.record = {}
+
+    def set_dsl(self, c_id, dsl_result):
+        self.record[c_id] = {res[ID_ARR]: [res[VAL_ARR], res[DOM_ARR]] for res in dsl_result}   
     
+    def get_cid(self):
+        return list(self.record.keys())
+    
+    def get_pid(self, c_id):
+        return list(self.record[c_id].keys())
+    
+    def get_pid_dsl(self, c_id):
+        try:
+            return [key for key, val in self.record[c_id].items() if not val[DOMINATED]]
+        except KeyError:
+            return []
+    
+    def get_dsl(self, c_id):
+        try:
+            return [[key, val[VAL], val[DOMINATED]] for key, val in self.record[c_id].items()]
+        except KeyError:
+            return []
+        
+    def remove_cid(self, c_id):
+        self.record.pop(c_id, None)
+    
+    def remove_pid(self, p_id):
+        # update when product out
+        for c_id in self.record:
+            if p_id in self.record[c_id]:
+                p_data = self.record[c_id].pop(p_id)
+                if p_data[DOMINATED]: continue
+                for other_p_id in self.record[c_id]:
+                    if p_id in self.record[c_id][other_p_id][DOMINATED]:
+                        self.record[c_id][other_p_id][DOMINATED].remove(p_id)
+                
+    def print(self):
+        pprint(self.record)

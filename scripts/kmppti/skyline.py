@@ -7,13 +7,9 @@ VAL = 1
 DOMINATED = 2
 
 class DynamicSkyline:
-    def __init__(self, grid):
+    def __init__(self, grid, record):
         self.grid = grid
-        self.result = {}
-
-    """
-    Public Functions
-    """
+        self.record = record
 
     def get(self, c_id, c_type, c_val):
         space = self.__search_space(c_id, c_type)
@@ -28,26 +24,21 @@ class DynamicSkyline:
                         result[j][DOMINATED].append(result[i][ID])
                     if self.__is_dominating(result[j][VAL], result[i][VAL], c_val):
                         result[i][DOMINATED].append(result[j][ID])
-        dsl_result = self.__set_result(c_id, result)
-        return dsl_result
+        self.record.set_dsl(c_id, result)
     
     def get_update(self, c_id, c_val, p_id, p_val):
-        if not self.result[c_id]:
+        result = self.record.get_dsl(c_id)
+        if not result:
             result = [[p_id, p_val, []]]
         else:
-            result = [[key, val[VAL-1], val[DOMINATED-1]] for key, val in self.result[c_id].items()]
             result.append([p_id, p_val, []])
             for i in range(len(result)):
                 if self.__is_dominating(result[i][VAL], p_val, c_val):
                     result[-1][DOMINATED].append(result[i][ID])
                 if self.__is_dominating(p_val, result[i][VAL], c_val):
                     result[i][DOMINATED].append(p_id)
-        dsl_result = self.__set_result(c_id, result)
-        return dsl_result
+        self.record.set_dsl(c_id, result)
 
-    def remove_record(self, c_id):
-        dsl_result = self.result.pop(c_id, None)
-    
     def __search_space(self, c_id, c_type):
         c_pos = self.grid.get_pos(c_id)
         c_val = self.grid.get_val(c_id, c_type)
@@ -99,12 +90,4 @@ class DynamicSkyline:
                     lt += 1
         return lte == len(val1) and lt > 0  
 
-    def __set_result(self, c_id, dsl_result):
-        if dsl_result:
-            self.result[c_id] = {res[ID]: [res[VAL], res[DOMINATED]] for res in dsl_result}   
-            dsl_result = [res[ID] for res in dsl_result if not res[DOMINATED]]
-        else:
-            self.result[c_id] = {}
-        return dsl_result
-    
     

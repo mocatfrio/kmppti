@@ -164,7 +164,8 @@ class Grid:
         if isinstance(space, tuple):
             space = [space]
         space = list(set(space).intersection(set(self.get_filled_pos())))
-        if not space: return result
+        if not space: 
+            return result
         cand = [self.grid[pos][data_type] for pos in space]
         result = {k: v for d in cand for k, v in d.items()}
         return result

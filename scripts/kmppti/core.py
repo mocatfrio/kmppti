@@ -33,6 +33,7 @@ def get_pbox(data, grid_size):
     grid = kd.Grid(grid_size, dim_size, max_val)
     record = kd.Record()
     dsl = ks.DynamicSkyline(grid, record)
+    rsl = ks.ReverseSkyline(grid)
     pbox = kd.PandoraBox(max_ts, p_size, record)
     # start processing 
     now_ts = 0
@@ -45,10 +46,11 @@ def get_pbox(data, grid_size):
             if obj[ACT] is ENTER:
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 if obj[TYPE] is CUSTOMER:
-                    dsl.get(obj[ID], obj[TYPE], obj[VALUE])
+                    dsl.get(obj[ID], obj[VALUE])
                 else:
                     # get rsl but pending
                     cust = grid.get_data(CUSTOMER)
+                    # cust = rsl.get(obj[ID], obj[VALUE])
                     for c_id, c_val in cust.items():
                         dsl.get_update(c_id, c_val, obj[ID], obj[VALUE])
             else:

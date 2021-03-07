@@ -1,21 +1,63 @@
-python main.py [approach_type] [c_file] [p_file] [k] [time_start] [time_end]
+python main.py [approach_type] [c_file] [p_file] [grid] [k] [time_start] [time_end]
 
---------------------------------------------------------
-what?
-Time-interval based product selection query
+===========================================
+Streaming
+Code and test - Maret
 
-base method: kmpp (dynamic skyline, reverse skyline)
-data structure: grid
+Skenario:
+Continuous K-MPPTI Query
+- Product dan Costumer sama2 Data Streaming (One Incoming, One Outgoing)
+- Proses nya sama dengan pandora box
+- Windows Size : 100-500 rb
+- Dimension : 2, 3, 5, 7
+- Dataset : AC, ID, FC
 
-method: KMPP based on Time Intervals (KMPPTI)
+server.py -> client.py -> main.py
+===========================================
 
-evaluation:
-Performance study - different approaches of processing k-MPPTI
-Variation of KMPP:
-  SRONDTI (Serial RSL + Online DSL) 
-  SROFDTI (Serial RSL + Offline DSL) --> baseline
-  PRONDTI (Parallel RSL + Online DSL) --> straightforward
-  PROFDTI (Parallel RSL + Offline DSL)
+Publikasi
+TARGET SUBMIT: Maret akhir
+JURNAL
+- IJAIN (International Journal of Advances in Intelligent Informatics) - Universitas Ahmad Dahlan (S1, Scopus)
+(https://ijain.org/index.php/IJAIN/about/submissions#onlineSubmissions)
+- REGISTER: Jurnal Ilmiah Teknologi Sistem Informasi - Unipdu (S1, Scopus)
+Juli & Januari (https://www.journal.unipdu.ac.id/index.php/register/index)
+- KURSOR - Universitas Trunojoyo (S2)
+- JUTI - ITS (S3)
 
-membandingkan efektifitas dgn metode lain dengan membandingkan market contribution, influence score, % valued customers
+Topic: Time-interval based product selection query
+Method: KMPP based on Time Intervals (KMPPTI)
+Base method: KMPP (dynamic skyline, reverse skyline)
+Data structure: grid
+
+Evaluation:
+Performance study of different approaches to process k-MPPTI
+Variation of k-MPPTI:
+    SRONDTI (Serial RSL + Online DSL) 
+    SROFDTI (Serial RSL + Offline DSL) 
+    PRONDTI (Parallel RSL + Online DSL) (pending)
+    PROFDTI (Parallel RSL + Offline DSL) (pending)
+
+Skenario:
+- Dataset : AC, ID, FC
+- Data Size : 100-500 rb
+- Dimension : 2, 3, 5, 7
+- Grid size : 3, 5, 7, 10
+
+===========================================
+THESIS
+- Code/App -> April-Juni
+- Testing --> Juli
+- Buku, PPT --> Juni-Agustus
+- Sidang 
+- Yudisium
+- Wisuda --> September
+
+
+
+
+
+CONFERENCE
+- ICTS (Conference) - Submission 1 April 2021
+- ICORIS (Conference) - Submission 25 June 2021
 

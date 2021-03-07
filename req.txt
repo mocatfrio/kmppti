@@ -1,0 +1,6 @@
+colorful==0.5.4
+numpy==1.20.1
+prettyprinter==0.18.0
+psutil==5.8.0
+Pygments==2.8.1
+python-dotenv==0.15.0

@@ -1,44 +1,37 @@
-import datetime, os
+import datetime, os, csv, psutil
 
 class Logger:
-    def __init__(self, log_path):
-        self.path = self.__set_dir(log_path)
-        self.filename = self.__set_filename()
-        self.ts = None
-        self.event = None
-        self.action = None
+    def __init__(self, log_path, filename, approach, grid_size, k, ts_start, ts_end):
+        self.log_path = log_path
+        self.info = self.get_info(filename) + [approach.__name__, grid_size, k, ts_start, ts_end]
+        self.start_time = None
+        self.end_time = None
 
-    def __set_dir(self, log_path):
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-        return log_path
+    def get_info(self, filename):
+        return filename.split("/")[-1].split(".")[0].split("_")[1:]
+
+    def write(self):
+        result = []
+        if not os.path.exists(self.log_path):
+            result.append(['Data Type', 'Data Size', 'Dim Size', 'Approach', 'Grid Size', 'k', 'TS Start', 'TS End', 'Runtime (S)', 'Mem Usage (MB)'])
+        result.append(self.info + [self.get_runtime(), self.get_mem_usage()])
+        with open(self.log_path, 'a') as output:
+            writer = csv.writer(output, lineterminator='\n')
+            for res in result:
+                writer.writerow(res)
     
-    def __set_filename(self):
-        now = datetime.datetime.now()
-        return self.path + now.strftime("%Y-%m-%d %H:%M:%S") + ".txt"
-
-    def set_ts(self, ts):
-        self.ts = ts
-        self.write()
-
-    def set_event(self, obj_name, obj_act, obj_pos):
-        act_name = "in" if obj_act == 0 else "out"
-        self.event = " ".join([obj_name, act_name, str(obj_pos)])
+    def start(self):
+        self.start_time = datetime.datetime.now()
     
-    def set_action(self, action):
-        self.action = "["+ action +"]"
-
-    def write(self, text=None):
-        with open(self.filename, mode="a") as file:
-            if not text:
-                text = "===================================================="
-            elif isinstance(text, list):
-                text = [self.ts, "\t", self.event, "\t", self.action, "\t"] + text
-                text = " ".join(str(e) for e in text)
-            file.write("{}\n".format(text))
-
+    def end(self):
+        self.end_time = datetime.datetime.now()
     
-
-
-
+    def get_runtime(self):
+        return (self.end_time - self.start_time).total_seconds()
+    
+    def get_mem_usage(self):
+        process = psutil.Process(os.getpid())
+        # mem = float(process.memory_info().rss)/1000000.0
+        mem = process.memory_info().rss / 1024 ** 2 # MB
+        return mem
     

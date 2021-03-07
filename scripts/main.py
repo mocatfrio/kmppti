@@ -4,10 +4,9 @@ from dotenv import load_dotenv
 from prettyprinter import pprint
 
 from kmppti.core import precompute, compute
-import kmppti.logger as log
+from kmppti.logger import Logger
 
 load_dotenv()
-# LOGGER = log.Logger(os.getenv("LOG_PATH"))
 
 def main():
     approach = {
@@ -23,11 +22,16 @@ def main():
     k = int(sys.argv[5])
     time_start = int(sys.argv[6])
     time_end = int(sys.argv[7])
+    # initialize logger 
+    logger = Logger(os.getenv("LOG_PATH"), c_file, approach[approach_type], grid_size, k, time_start, time_end)
+    logger.start()
     # select approach
     result, label = approach[approach_type](c_file, p_file, grid_size, k, time_start, time_end)
     # convert to json
     json_result = {label[result[i][0]]: result[i][1] for i in range(len(result))}
     pprint(json_result)
+    logger.end()
+    logger.write()
 
 def srondti_approach(c_file, p_file, grid_size, k, time_start, time_end):
     # get data in interval time query
@@ -86,3 +90,7 @@ def get_products(p_file):
 
 if __name__ == '__main__':
     main()
+
+
+
+

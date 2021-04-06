@@ -1,3 +1,0 @@
-PRODUCT = 0
-CUSTOMER = 1
-ENTER = 0

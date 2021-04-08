@@ -40,33 +40,34 @@ class Grid:
                 "dominance_boundary": None,
                 "node_id": None
             }
-        print("Inserted at pos ", pos)
+        print("INSERT GRID ", obj_id, " to ", pos)
         pprint(self.grid[pos][obj_type])
     
     def remove(self, obj_id, obj_type):
         pos = self.pos.pop(obj_id, None)
         if pos: 
-            self.grid[pos][obj_type].pop(obj_id)
+            obj_data = self.grid[pos][obj_type].pop(obj_id)
             if all(not d for d in self.grid[pos]):
                 self.grid[pos] = None
+        return obj_data
     
-    def update_customer(self, obj_id, dsl_result=None, dominance_boundary=None):
+    def update_customer(self, obj_id, dsl_result=None, dominance_boundary=None, node_id=None, all_data=None):
         pos = self.get_pos(obj_id)
-        if obj_id in self.grid[pos]:
+        if self.is_exist(pos, CUSTOMER, obj_id):
             if dsl_result:
                 self.grid[pos][CUSTOMER][obj_id]["dsl_result"] = dsl_result
             if dominance_boundary:
                 self.grid[pos][CUSTOMER][obj_id]["dominance_boundary"] = dominance_boundary
-        print("Updating ", obj_id)
-        pprint(self.grid[pos][CUSTOMER])
+            if node_id:
+                self.grid[pos][CUSTOMER][obj_id]["node_id"] = node_id
+            if all_data:
+                self.grid[pos][CUSTOMER][obj_id] = all_data
     
     def update_product(self, obj_id, rsl_result=None):
         pos = self.get_pos(obj_id)
-        if obj_id in self.grid[pos]:
+        if self.is_exist(pos, PRODUCT, obj_id):
             if rsl_result:
                 self.grid[pos][PRODUCT][obj_id]["rsl_result"] = rsl_result
-        print("Updating ", obj_id)
-        pprint(self.grid[pos][PRODUCT])
     
     # Getter 
     def get_empty_pos(self):
@@ -82,18 +83,25 @@ class Grid:
     
     def get_val(self, obj_id, obj_type):
         obj_pos = self.get_pos(obj_id)
-        return self.grid[obj_pos][obj_type][obj_id]
+        if obj_pos:
+            return self.grid[obj_pos][obj_type][obj_id]
 
-    def get_data(self, data_type, space=None):
+    def get_data(self, obj_type, space=None, obj_id=None):
         result = {}
-        if not space:
+        if not space and not obj_id:
             space = self.get_filled_pos()
-        if isinstance(space, tuple):
-            space = [space]
-        space = list(set(space).intersection(set(self.get_filled_pos())))
-        if space: 
-            cand = [self.grid[pos][data_type] for pos in space]
+        if space:
+            if isinstance(space, tuple):
+                space = [space]
+            space = list(set(space).intersection(set(self.get_filled_pos())))  # just take position that are filled
+            cand = [self.grid[pos][obj_type] for pos in space]
             result = {k: v for d in cand for k, v in d.items()}
+        if obj_id: 
+            if not isinstance(obj_id, list):
+                obj_id = [obj_id]
+            for o_id in obj_id:
+                pos = self.get_pos(o_id)
+                result[o_id] = self.grid[pos][obj_type][o_id]
         return result
     
     def get_neighbor(self, pos, excluded_space):
@@ -119,7 +127,7 @@ class Grid:
     def search_space(self, obj_id, obj_val):
         obj_pos = self.get_pos(obj_id)
         queue = [obj_pos]
-        result = []   # containing non-dominating partition                                           
+        result = []                         # containing non-dominating partition                                           
         while queue:
             pos = queue.pop(0)
             result.append(pos)
@@ -134,7 +142,7 @@ class Grid:
                     for p_id, p_val in res_cand.items():
                         # jika ada satu saja p yang mendominasi kedua n_border, 
                         # maka obj itu adalah pivot thd n_pos
-                        if is_pivot(p_val, n_border, obj_val):
+                        if is_pivot(p_val["value"], n_border, obj_val):
                             n_is_dominated = True
                             break
                     if n_is_dominated: 
@@ -148,4 +156,9 @@ class Grid:
     
     def is_customer(self, obj_type):
         return obj_type == CUSTOMER
+    
+    def is_exist(self, pos, obj_type, obj_id):
+        if self.grid[pos]:
+            return obj_id in self.grid[pos][obj_type]
+
     

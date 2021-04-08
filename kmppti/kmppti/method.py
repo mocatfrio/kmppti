@@ -6,13 +6,14 @@ import sys
 # 3rd party packages 
 import numpy as np
 from dotenv import load_dotenv
+from prettyprinter import pprint
 
 # local source
 from kmppti.Queue import Queue
 from kmppti.Grid import Grid
 from kmppti.RTree import RTree
 from kmppti.PandoraBox import PandoraBox
-from kmppti.Skyline import dynamic_skyline
+from kmppti.Skyline import dynamic_skyline, reverse_skyline
 from kmppti.Constant import PRODUCT, CUSTOMER
 
 load_dotenv()
@@ -59,8 +60,8 @@ def process(queue, grid_size):
     max_boundary = queue.get_max_boundary()
     # initialization
     grid = Grid(grid_size, dim_size, max_val)
-    rtree = RTree(grid, dim_size, max_boundary)
-    pbox = PandoraBox(max_ts, product_size, rtree)
+    rtree = RTree(dim_size, max_boundary)
+    pbox = PandoraBox(max_ts, product_size)
     # start processing 
     now_ts = 0
     while now_ts <= max_ts:
@@ -68,44 +69,59 @@ def process(queue, grid_size):
         print("TS", now_ts)
         objs = queue.pop(now_ts)
         for obj in objs:
+            print("")
             print(obj)
-            # customer insertion 
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 # get search space 
                 space = grid.search_space(obj[ID], obj[VALUE])
-                print("Search space: ", space)
                 # get products on the search space
-                products = grid.get_data(PRODUCT, space)
-                print("Candidate products: ", products)
+                products = grid.get_data(PRODUCT, space=space)
                 # get dynamic skyline
                 dsl_result, dominance_boundary = dynamic_skyline(obj[ID], obj[VALUE], products)
-                print("DSL_result: ", dsl_result)
-                print("Dominance Boundary: ", dominance_boundary)
                 # insert to R-Tree 
-                rtree.insert(obj[ID], obj[VALUE], dsl_result)
+                node_id = rtree.insert(obj[ID], obj[VALUE], dsl_result)
                 # save dsl result in the grid 
-                grid.update_customer(obj[ID], dsl_result, dominance_boundary)
-            # customer deletion 
+                grid.update_customer(obj[ID], dsl_result, dominance_boundary, node_id)
+
             elif customer_deletion(obj[TYPE], obj[ACT]):
                 # remove from grid
-                grid.remove(obj[ID], obj[TYPE])
+                c_data = grid.remove(obj[ID], obj[TYPE])
                 # remove from tree 
-                rtree.delete_customer(obj[ID])
-            # product insertion 
+                rtree.delete(c_data["node_id"])
+
             elif product_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
-                # search potential branch 
-            # product deletion 
+                # search candidate - not dominated by dominance boundaries 
+                c_id = rtree.search(obj[ID], obj[VALUE])                           # [c_id, c_id, c_id]
+                customers = grid.get_data(CUSTOMER, obj_id=c_id)
+                # get reverse skyline 
+                rsl_result = reverse_skyline(obj[ID], obj[VALUE], customers)      # return value formatnya sama kayak dari grid
+                print("")
+                print("Update to RTree")
+                for key, val in rsl_result.items():
+                    # update R-Tree 
+                    rtree.update(key, val["value"], val["dsl_result"], val["node_id"])
+                    # save dsl result in the grid 
+                    grid.update_customer(obj[ID], all_data=val)
+                # save rsl result in the grid 
+                grid.update_product(obj[ID], list(rsl_result.keys()))
+
             elif product_deletion(obj[TYPE], obj[ACT]):
                 pass
-            #     grid.remove(obj[ID], obj[TYPE])
+                # # remove from grid
+                # p_data = grid.remove(obj[ID], obj[TYPE])
+                # # remove from tree                 
+                # rtree.delete_product(obj[ID])
+        # get all customers
+        customers = grid.get_data(CUSTOMER)
         # update pbox 
-        # pbox.update(now_ts)
+        pbox.update(now_ts, customers)
         now_ts += 1
     # return pbox.get()
+    pbox.print()
     sys.exit()
 
 """ Helper Function """
@@ -156,10 +172,3 @@ def product_insertion(obj_type, act):
 
 def product_deletion(obj_type, act):
     return obj_type == PRODUCT and act == DELETION
-
-# def online_kmppti(p_file, c_file, k, grid_size, time_start, time_end):
-#     data = Queue(p_file, c_file, time_start, time_end)
-#     pbox_data = process(data, grid_size)
-#     result = sort(np.sum(pbox_data, axis = 1), k)
-#     label = queue.get_label()
-#     return reshape_result(pbox_data, label) 

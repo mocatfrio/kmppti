@@ -2,6 +2,7 @@
 import os
 import csv
 import sys
+from collections import Counter
 
 # 3rd party packages 
 import numpy as np
@@ -65,12 +66,8 @@ def process(queue, grid_size):
     # start processing 
     now_ts = 0
     while now_ts <= max_ts:
-        print("=============================================")
-        print("TS", now_ts)
         objs = queue.pop(now_ts)
         for obj in objs:
-            print("")
-            print(obj)
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
@@ -90,31 +87,50 @@ def process(queue, grid_size):
                 c_data = grid.remove(obj[ID], obj[TYPE])
                 # remove from tree 
                 rtree.delete(c_data["node_id"])
+                # remove from all p's rsl result 
+                for p_id in c_data["dsl_result"]:
+                    grid.remove_rsl_result(p_id[0], obj[ID])
 
             elif product_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
-                # search candidate - not dominated by dominance boundaries 
-                c_id = rtree.search(obj[ID], obj[VALUE])                           # [c_id, c_id, c_id]
+                # search candidate - not dominated by dominance boundaries  
+                c_id = rtree.search(p_id=obj[ID], p_val=obj[VALUE])     # return [c_id, c_id, c_id]
+                # get customers data based on candidate id                      
                 customers = grid.get_data(CUSTOMER, obj_id=c_id)
                 # get reverse skyline 
                 rsl_result = reverse_skyline(obj[ID], obj[VALUE], customers)      # return value formatnya sama kayak dari grid
-                print("")
-                print("Update to RTree")
-                for key, val in rsl_result.items():
-                    # update R-Tree 
-                    rtree.update(key, val["value"], val["dsl_result"], val["node_id"])
-                    # save dsl result in the grid 
-                    grid.update_customer(obj[ID], all_data=val)
+                # for each c in rsl result 
+                for c_id, c_data in rsl_result.items():
+                    # update dsl result
+                    curent_dsl_result = grid.get_dsl_result(c_id)
+                    update_dsl_result(grid, rtree, c_id, c_data["value"], curent_dsl_result, c_data["dsl_result"], c_data["dominance_boundary"], c_data["node_id"])
                 # save rsl result in the grid 
                 grid.update_product(obj[ID], list(rsl_result.keys()))
 
             elif product_deletion(obj[TYPE], obj[ACT]):
-                pass
-                # # remove from grid
-                # p_data = grid.remove(obj[ID], obj[TYPE])
-                # # remove from tree                 
-                # rtree.delete_product(obj[ID])
+                # remove from grid
+                p_data = grid.remove(obj[ID], obj[TYPE])
+                # remove from tree
+                if p_data["rsl_result"]:
+                    for c_id in p_data["rsl_result"]:
+                        # get all customer neighbors in the same branch
+                        node_id = grid.get_node_id(c_id)
+                        neighbors_id = rtree.search(node_id=node_id)                           # [c_id, c_id, c_id]
+                        customers = grid.get_data(CUSTOMER, obj_id=neighbors_id)
+                        # get all dsl result of the neighbors - to get potential products if this product is deleted
+                        dsl_result = [item for sublist in [val["dsl_result"] for key, val in customers.items()] for item in sublist]
+                        # get current dsl result of c_id
+                        c_dsl_result = grid.get_dsl_result(c_id)
+                        c_value = grid.get_value(c_id, CUSTOMER)
+                        # if current dsl result and neighbor's dsl result are not same
+                        if Counter([dsl[0] for dsl in dsl_result]) != Counter([dsl[0] for dsl in c_dsl_result]):
+                            dsl_result = get_unique_list(dsl_result + c_dsl_result)
+                            # recompute dsl skyline 
+                            products = {c_data[0]: {"value": c_data[1]} for c_data in dsl_result}
+                            dsl_result, dominance_boundary = dynamic_skyline(c_id, c_value, products)
+                            # update dsl result
+                            update_dsl_result(grid, rtree, c_id, c_value, c_dsl_result, dsl_result, dominance_boundary, node_id)
         # get all customers
         customers = grid.get_data(CUSTOMER)
         # update pbox 
@@ -172,3 +188,21 @@ def product_insertion(obj_type, act):
 
 def product_deletion(obj_type, act):
     return obj_type == PRODUCT and act == DELETION
+
+def get_unique_list(mylist):
+    # get unique value between current dsl result and new dsl result
+    new_arr = []
+    for arr in mylist:
+        if not arr in new_arr:
+            new_arr.append(arr)
+    return new_arr
+
+def update_dsl_result(grid, rtree, c_id, c_value, current_dsl_result, new_dsl_result, dominance_boundary, node_id):
+    # remove c_id from p's rsl result in the current dsl result
+    if current_dsl_result:
+        for p_data in current_dsl_result:
+            grid.remove_rsl_result(p_data[0], c_id)       # p_data= [p_id, p_value]
+    # update R-Tree 
+    rtree.update(c_id, c_value, new_dsl_result, node_id)
+    # save dsl result in the grid 
+    grid.update_customer(c_id, new_dsl_result, dominance_boundary, node_id)

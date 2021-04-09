@@ -14,50 +14,37 @@ class RTree:
     """ Public Function """
 
     def insert(self, c_id, c_val, dsl_result):
-        print("INSERT TREE ", c_id, " - ", c_val, " - DSL Result: ", dsl_result)
         # generate boundary box 
         boundary_box = self.calculate_boundary(c_val, dsl_result)
-        print("Boundary: ", boundary_box)
         parent_id = self.choose_leaf(boundary_box)
         # get new node id 
         droplet_id = self.add_node(parent_id, boundary_box, c_id=c_id)
-        print("Droplet id: ", droplet_id)
         # append child
         self.set_childs(parent_id, droplet_id)
         # adjust tree 
         self.adjust_tree(droplet_id)
-        print("Tree")
-        pprint(self.rtree)
         return droplet_id
 
     def delete(self, node_id):
         self.condense_tree(node_id)
     
-    def search(self, p_id, p_val):
-        print("SEARCH TREE ", p_id, " ", p_val)
-        candidate = []
-        boundary = self.calculate_boundary(p_val)
-        print("Boundary: ", boundary)
-        branch_id = self.search_branch(boundary)
-        print("Branch id: ", branch_id)
-        pprint(self.rtree)
+    def search(self, p_id=None, p_val=None, node_id=None):
+        if not p_id is None:
+            candidate = []
+            boundary = self.calculate_boundary(p_val)
+            branch_id = self.search_branch(boundary)
+        if not node_id is None:
+            branch_id = self.get_parent(node_id)
         c_id = []
-        self.get_cid(c_id, branch_id)
-        print("Customer id: ", c_id)
         return c_id
 
     def update(self, c_id, c_val, dsl_result, node_id):
         # generate boundary box 
         boundary_box = self.calculate_boundary(c_val, dsl_result)
-        print("Boundary: ", boundary_box)
         # set boundary at the existing node id
         self.set_boundary(node_id, boundary_box)
-        print("Before Adjusting Tree")
-        pprint(self.rtree)
         # adjust tree 
         self.adjust_tree(node_id)
-        print("After Adjusting Tree")
-        pprint(self.rtree)
 
     """ Basic setter, getter, and definer """
 
@@ -180,6 +167,9 @@ class RTree:
         # adjust boundary and add new node 
         new_boundary = self.adjust_boundary(splitted_child[1])
         new_node_id = self.add_node(None, boundary, splitted_child[1])
+        # adjust parent of splitted child 
+        for child_id in splitted_child[1]:
+            self.set_parent(child_id, new_node_id)
         # if global root 
         if self.is_root(node_id):
             # create new branch 
@@ -190,6 +180,8 @@ class RTree:
             branch_id = self.get_parent(node_id)
         # set parent of new node 
         self.set_parent(new_node_id, branch_id)
+        # adjust child of parent of new node 
+        self.set_childs(branch_id, new_node_id)
 
     """ Node """
 
@@ -248,7 +240,9 @@ class RTree:
                         child_id = [childs[child_id_min[i]], childs[child_id_max[i+1]]]
                     if len(child_id_min) > len(child_id_max):
                         child_id = [childs[child_id_min[i+1]], childs[child_id_max[i]]]
-                    i += 1
+                else:
+                    child_id = [childs[child_id_min[i]], childs[child_id_max[i]]]
+                i += 1
             candidate.append([child_id, diff])
         # get the largest difference between all dimension 
         diff = [c[1] for c in candidate]

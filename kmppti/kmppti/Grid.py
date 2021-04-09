@@ -40,8 +40,6 @@ class Grid:
                 "dominance_boundary": None,
                 "node_id": None
             }
-        print("INSERT GRID ", obj_id, " to ", pos)
-        pprint(self.grid[pos][obj_type])
     
     def remove(self, obj_id, obj_type):
         pos = self.pos.pop(obj_id, None)
@@ -51,17 +49,12 @@ class Grid:
                 self.grid[pos] = None
         return obj_data
     
-    def update_customer(self, obj_id, dsl_result=None, dominance_boundary=None, node_id=None, all_data=None):
+    def update_customer(self, obj_id, dsl_result=None, dominance_boundary=None, node_id=None):
         pos = self.get_pos(obj_id)
         if self.is_exist(pos, CUSTOMER, obj_id):
-            if dsl_result:
-                self.grid[pos][CUSTOMER][obj_id]["dsl_result"] = dsl_result
-            if dominance_boundary:
-                self.grid[pos][CUSTOMER][obj_id]["dominance_boundary"] = dominance_boundary
-            if node_id:
-                self.grid[pos][CUSTOMER][obj_id]["node_id"] = node_id
-            if all_data:
-                self.grid[pos][CUSTOMER][obj_id] = all_data
+            self.grid[pos][CUSTOMER][obj_id]["dsl_result"] = dsl_result
+            self.grid[pos][CUSTOMER][obj_id]["dominance_boundary"] = dominance_boundary
+            self.grid[pos][CUSTOMER][obj_id]["node_id"] = node_id
     
     def update_product(self, obj_id, rsl_result=None):
         pos = self.get_pos(obj_id)
@@ -81,10 +74,20 @@ class Grid:
             self.pos[obj_id] = tuple([0 if not val else (int((val/self.range) - 1) if val % self.range == 0 else math.floor(val/self.range)) for val in obj_val])
         return self.pos.get(obj_id, None)
     
-    def get_val(self, obj_id, obj_type):
-        obj_pos = self.get_pos(obj_id)
-        if obj_pos:
-            return self.grid[obj_pos][obj_type][obj_id]
+    def get_value(self, obj_id, obj_type):
+        pos = self.get_pos(obj_id)
+        if self.is_exist(pos, obj_type, obj_id):
+            return self.grid[pos][obj_type][obj_id]["value"]
+    
+    def get_dsl_result(self, c_id):
+        pos = self.get_pos(c_id)
+        if self.is_exist(pos, CUSTOMER, c_id):
+            return self.grid[pos][CUSTOMER][c_id]["dsl_result"]
+
+    def get_node_id(self, c_id):
+        pos = self.get_pos(c_id)
+        if self.is_exist(pos, CUSTOMER, c_id):
+            return self.grid[pos][CUSTOMER][c_id]["node_id"]
 
     def get_data(self, obj_type, space=None, obj_id=None):
         result = {}
@@ -118,11 +121,6 @@ class Grid:
     
     def get_nearest_border(self, pos, n_pos):
         return set(self.boundary[pos]).intersection(set(self.boundary[n_pos]))
-    
-    def get_node_id(self, c_id):
-        pos = self.get_pos(c_id)
-        if c_id in self.grid[pos]:
-            return self.grid[pos][CUSTOMER][c_id]["node_id"]
     
     def search_space(self, obj_id, obj_val):
         obj_pos = self.get_pos(obj_id)
@@ -158,7 +156,13 @@ class Grid:
         return obj_type == CUSTOMER
     
     def is_exist(self, pos, obj_type, obj_id):
-        if self.grid[pos]:
+        try:
             return obj_id in self.grid[pos][obj_type]
+        except:
+            return False
 
-    
+    def remove_rsl_result(self, p_id, c_id):
+        pos = self.get_pos(p_id)
+        if pos:
+            if c_id in self.grid[pos][PRODUCT][p_id]["rsl_result"]:
+                self.grid[pos][PRODUCT][p_id]["rsl_result"].remove(c_id)

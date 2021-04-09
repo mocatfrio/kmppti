@@ -25,22 +25,14 @@ def dynamic_skyline(c_id, c_val, products):
     return result, dominance_boundary
 
 def reverse_skyline(p_id, p_val, customers):
-    print("")
-    print("REVERSE SKYLINE COMPUTATION")
     candidate = []
-    print("Search candidate")
     for key, val in customers.items():
-        print("Customer ", key, " - ", val["value"])
         p_diff = calculate_diff(val["value"], p_val)
         # check using dominance boundary
         if is_candidate(p_diff, val["dominance_boundary"]):
             candidate.append(key)
-    print("")
-    print("Candidate c: ", candidate)
-    print("Recompute DSL")
     rsl_result = {}
     for c_id in candidate:
-        print("Customer ", c_id, " - ", customers[c_id]["value"])
         # current dsl result
         products = {}
         curr_dsl_id = []
@@ -52,8 +44,6 @@ def reverse_skyline(p_id, p_val, customers):
         # recompute dsl result 
         dsl_result, dominance_boundary = dynamic_skyline(c_id, customers[c_id]["value"], products)
         new_dsl_id = [dsl[0] for dsl in dsl_result]
-        print("Current DSL Result ", curr_dsl_id)
-        print("New DSL Result ", new_dsl_id)
         # if current and new dsl result is not same 
         if Counter(new_dsl_id) != Counter(curr_dsl_id):
             rsl_result[c_id] = {
@@ -62,10 +52,6 @@ def reverse_skyline(p_id, p_val, customers):
                 "dominance_boundary": dominance_boundary,
                 "node_id": customers[c_id]["node_id"]
             }
-    print("Current Customer data")
-    pprint(customers)
-    print("RSL Result")
-    pprint(rsl_result)
     return rsl_result
 
 def calculate_diff(arr1, arr2):
@@ -155,9 +141,6 @@ def is_pivot(p_val, n_border, q_val):
     return p_dominating == len(n_border)
 
 def is_candidate(p_diff, dominance_boundary):
-    print("Check candidate")
-    print("P val - c val", p_diff)
-    print("Dominance boundary", dominance_boundary)
     dominated = 0
     if dominance_boundary:
         for boundary in dominance_boundary:

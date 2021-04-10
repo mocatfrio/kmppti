@@ -48,7 +48,7 @@ def kmppti(p_file, c_file, k, grid_size, time_start, time_end):
     pbox_data = pbox_data[0 : len(pbox_data), time_start - 1 : time_end - 1]
     result = sort(np.sum(pbox_data, axis = 1), k)
     label = get_products(p_file)
-    return reshape_result(pbox_data, label) 
+    return reshape_result(result, label) 
 
 """ Main Function """
 
@@ -136,9 +136,7 @@ def process(queue, grid_size):
         # update pbox 
         pbox.update(now_ts, customers)
         now_ts += 1
-    # return pbox.get()
-    pbox.print()
-    sys.exit()
+    return pbox.get()
 
 """ Helper Function """
 

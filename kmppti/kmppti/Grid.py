@@ -83,6 +83,11 @@ class Grid:
         pos = self.get_pos(c_id)
         if self.is_exist(pos, CUSTOMER, c_id):
             return self.grid[pos][CUSTOMER][c_id]["dsl_result"]
+    
+    def get_rsl_result(self, p_id):
+        pos = self.get_pos(p_id)
+        if self.is_exist(pos, PRODUCT, p_id):
+            return self.grid[pos][PRODUCT][p_id]["rsl_result"]
 
     def get_node_id(self, c_id):
         pos = self.get_pos(c_id)
@@ -164,5 +169,6 @@ class Grid:
     def remove_rsl_result(self, p_id, c_id):
         pos = self.get_pos(p_id)
         if pos:
-            if c_id in self.grid[pos][PRODUCT][p_id]["rsl_result"]:
-                self.grid[pos][PRODUCT][p_id]["rsl_result"].remove(c_id)
+            if self.get_rsl_result(p_id):
+                if c_id in self.grid[pos][PRODUCT][p_id]["rsl_result"]:
+                    self.grid[pos][PRODUCT][p_id]["rsl_result"].remove(c_id)

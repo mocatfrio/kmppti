@@ -3,6 +3,7 @@ import os
 import getopt
 import time
 from dotenv import load_dotenv
+from prettyprinter import pprint
 
 from kmppti.Method import kmppti
 from kmppti.Logger import Logger
@@ -37,6 +38,7 @@ def main(argv):
     log = Logger(os.getenv("LOG_PATH"), p_file, [k, grid, time_start, time_end])
     log.start()
     result = kmppti(p_file, c_file, k, grid, time_start, time_end)
+    pprint(result)
     log.end()
     log.write()
     

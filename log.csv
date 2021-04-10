@@ -1,0 +1,3 @@
+Data Type,Data Size,Dim Size,k,Grid Size,TS Start,TS End,Runtime (S),Mem Usage (MB)
+ind,5,2,5,3,1,15,00:00:00.00,23.62890625
+ind,5,2,5,3,1,15,00:00:00.01,23.80859375

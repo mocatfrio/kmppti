@@ -6,15 +6,17 @@ import getopt
 import random
 
 import numpy as np
+import pandas as pd
 from dotenv import load_dotenv
+from prettyprinter import pprint
 
 load_dotenv()
 
 MAX_VALUE = 200
 DISTANCE = 5
 
-
 def main(argv):
+    # get arguments 
     short_command = "hc:t:n:d:l:f:"
     long_command = ["help", "command=", "dataset_type=", "data_size=", "dim_size=", "label=", "file="]
     try:
@@ -38,8 +40,12 @@ def main(argv):
             label = arg
         elif opt in ("-f", "--file"):
             filename = os.getenv("DATASET_PATH") + arg
+    # process based on command 
     if command == "generate":
-        data = generate_data(dim_size, data_size, dataset_type, label)
+        if is_real(dataset_type):
+            data = preprocess_data(dim_size, data_size, label)
+        else:
+            data = generate_data(dim_size, data_size, dataset_type, label)
     elif command == "prepare":
         data = prepare_data(filename)
     elif command == "partition":
@@ -49,9 +55,9 @@ def main(argv):
         label = filename.split("_")[3]
         filename = "_".join([dataset_type, str(data_size), dim_size, label])
     if not "filename" in locals():
-        # export data 
         filename = "_".join([dataset_type, str(data_size), str(dim_size), label])
         filename = os.getenv("DATASET_PATH") + filename + ".csv"
+    # export data 
     export_data(filename, data)
 
 def generate_data(dim_size, data_size, dataset_type, label):
@@ -64,6 +70,37 @@ def generate_data(dim_size, data_size, dataset_type, label):
         row += randomize_data(dataset_type, dim_size)
         data.append(row)
     return data
+
+def preprocess_data(dim_size, data_size, label):
+    dataset_path = os.getenv("DATASET_PATH") + "generator/covtype.csv"
+    df = pd.read_csv(dataset_path)
+    # normalisasi min-max 
+    for col in df.columns:
+        normalized_value = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
+        df[col] = round(normalized_value * 100).astype(int)
+    # split data for product and customer
+    if label == "product":
+        # selecting rows that scope (as ts in) < aspect (as ts out)
+        df = df[df["Slope"] < df["Aspect"]]
+        df.insert(0, "Label", ["product-" + str(i+1) for i in range(len(df))], True)
+        new_columns = ["Label", "Slope", "Aspect", "Elevation"] + [col for col in df.columns[4:]]
+    else:
+        df = df[df["Horizontal_Distance_To_Hydrology"] < df["Elevation"]]
+        df.insert(0, "Label", ["customer-" + str(i+1) for i in range(len(df))], True)
+        new_columns = ["Label", "Horizontal_Distance_To_Hydrology", "Elevation", "Aspect", "Slope"] + [col for col in df.columns[5:]]
+    # swap columns
+    df = df.reindex(columns = new_columns)
+    # sort based on first column 
+    df = df.sort_values(df.columns[1])
+    # reset index 
+    df = df.reset_index(drop=True)
+    df.insert(0, "ID", [i + 1 for i in df.index], True)
+    # get row based on required data and dim size 
+    df = df.iloc[:data_size, :dim_size + 4]
+    # convert df to list 
+    result = [df.columns.tolist()]
+    result += df.values.tolist()
+    return result
 
 def prepare_data(filename):
     data = []
@@ -153,6 +190,9 @@ def is_independent(dataset_type):
 
 def is_anticorrelated(dataset_type):
     return dataset_type.lower() == "ant"
+
+def is_real(dataset_type):
+    return dataset_type.lower() == "fc"
 
 def export_data(filename, data):
     try:

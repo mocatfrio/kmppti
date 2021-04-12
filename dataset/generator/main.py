@@ -35,6 +35,7 @@ def main(argv):
             label = arg
     # generate data 
     data = [["id", "label", "ts_in", "ts_out"]]
+    data[0] += ["attr_" + str(i+1) for i in range(dim_size)]
     for i in range(data_size):
         row = [i + 1, label + "-" + str(i + 1)]
         row += randomize_ts()
@@ -78,12 +79,12 @@ def randomize_independent(dim_size):
 def randomize_anticorr(dim_size):
     data = []
     val = randomize()
-    selected_dim = random.uniform(0, dim_size - 1)
+    selected_dim = random.randint(0, dim_size - 1)
     for i in range(dim_size):
         if i == selected_dim:
             data.append(val)
         else:
-            other_val = MAX_VALUE - val + random.uniform(-DISTANCE, DISTANCE)
+            other_val = MAX_VALUE - val + random.randint(-DISTANCE, DISTANCE)
             if other_val < 0:
                 data.append(0)
             elif other_val > MAX_VALUE:

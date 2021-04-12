@@ -1,3 +1,6 @@
 __pycache__/
 .env
 venv/
+pbox/
+history.json
+log.csv

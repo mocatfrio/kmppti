@@ -31,17 +31,36 @@ def process(queue, grid_size, history):
     dim_size = queue.get_dim_size()
     product_size = queue.get_product_size()
     max_boundary = queue.get_max_boundary()
+    data_size = queue.get_data_size()
     # initialization
     grid = Grid(grid_size, dim_size, max_val)
     rtree = RTree(dim_size, max_boundary)
     pbox = PandoraBox(max_ts, product_size)
     # to mark whether the key ever does not match history
     key_is_different = False
+    counter = 0
     # start processing 
     now_ts = 0
     while now_ts <= max_ts:
         objs = queue.pop(now_ts)
         for obj in objs:
+            # progress notif
+            if counter == 0:
+                print("================================")
+                print("Progress 0%")
+            elif counter == round(data_size/4):
+                print("================================")
+                print("Progress 25%")
+            elif counter == round(data_size/2):
+                print("================================")
+                print("Progress 50%")
+            elif counter == data_size - round(data_size/2):
+                print("================================")
+                print("Progress 75%")
+            elif counter == data_size:
+                print("================================")
+                print("Progress 100%")
+
             id_data = "_".join([str(obj[0])] + [str(o) for o in obj[2:]])
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
@@ -139,6 +158,8 @@ def process(queue, grid_size, history):
                                 }
                             # update dsl result
                             update_dsl_result(grid, rtree, c_id, c_value, c_dsl_result, dsl_result, dominance_boundary, node_id)
+
+            counter += 1
         # get all customers
         customers = grid.get_data(CUSTOMER)
         # update pbox 

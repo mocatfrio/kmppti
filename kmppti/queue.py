@@ -43,6 +43,9 @@ class Queue:
     def get_dim_size(self):
         return len(self.info[0]["value"])
     
+    def get_data_size(self):
+        return len(self.info)
+    
     def get_product_size(self):
         return self.product_size
     

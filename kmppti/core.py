@@ -44,23 +44,7 @@ def process(queue, grid_size, history):
     while now_ts <= max_ts:
         objs = queue.pop(now_ts)
         for obj in objs:
-            # progress notif
-            if counter == 0:
-                print("================================")
-                print("Progress 0%")
-            elif counter == round(data_size/4):
-                print("================================")
-                print("Progress 25%")
-            elif counter == round(data_size/2):
-                print("================================")
-                print("Progress 50%")
-            elif counter == data_size - round(data_size/2):
-                print("================================")
-                print("Progress 75%")
-            elif counter == data_size:
-                print("================================")
-                print("Progress 100%")
-
+            progress(counter, data_size)
             id_data = "_".join([str(obj[0])] + [str(o) for o in obj[2:]])
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
@@ -205,3 +189,68 @@ def use_history(history, id_data, sub_id_data=None):
         result = result and sub_id_data in history[id_data]
     return result
     
+def progress(counter, data_size):
+    # progress notif
+    if counter == 0:
+        print("================================")
+        print("Progress 0%")
+    elif counter == round(5/100 * data_size):
+        print("================================")
+        print("Progress 5%")
+    elif counter == round(10/100 * data_size):
+        print("================================")
+        print("Progress 10%")
+    elif counter == round(15/100 * data_size):
+        print("================================")
+        print("Progress 15%")
+    elif counter == round(20/100 * data_size):
+        print("================================")
+        print("Progress 20%")
+    elif counter == round(25/100 * data_size):
+        print("================================")
+        print("Progress 25%")
+    elif counter == round(30/100 * data_size):
+        print("================================")
+        print("Progress 30%")
+    elif counter == round(35/100 * data_size):
+        print("================================")
+        print("Progress 35%")
+    elif counter == round(40/100 * data_size):
+        print("================================")
+        print("Progress 40%")
+    elif counter == round(45/100 * data_size):
+        print("================================")
+        print("Progress 45%")
+    elif counter == round(50/100 * data_size):
+        print("================================")
+        print("Progress 50%")
+    elif counter == round(55/100 * data_size):
+        print("================================")
+        print("Progress 55%")
+    elif counter == round(60/100 * data_size):
+        print("================================")
+        print("Progress 60%")
+    elif counter == round(65/100 * data_size):
+        print("================================")
+        print("Progress 65%")
+    elif counter == round(70/100 * data_size):
+        print("================================")
+        print("Progress 70%")
+    elif counter == round(75/100 * data_size):
+        print("================================")
+        print("Progress 75%")
+    elif counter == round(80/100 * data_size):
+        print("================================")
+        print("Progress 80%")
+    elif counter == round(85/100 * data_size):
+        print("================================")
+        print("Progress 85%")
+    elif counter == round(90/100 * data_size):
+        print("================================")
+        print("Progress 90%")
+    elif counter == round(95/100 * data_size):
+        print("================================")
+        print("Progress 95%")
+    elif counter == data_size:
+        print("================================")
+        print("Progress 100%")

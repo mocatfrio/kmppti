@@ -62,6 +62,7 @@ def main(argv):
     log.write()
 
 def precomputing(p_file, c_file, grid_size):
+    print("Precompute", p_file, c_file, grid_size)
     # import product and customer files as queue 
     queue = Queue(p_file, c_file)
     # import history data for precomputation efficiency - stored based on dim_size

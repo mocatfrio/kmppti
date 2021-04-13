@@ -46,7 +46,7 @@
 #python3 main.py -d precomputing -p fc_100000_3_product.csv -c fc_100000_3_customer.csv
 
 # pake history 
-#python3 main.py -d precomputing -p ind_75000_3_product.csv -c ind_75000_3_customer.csv
+#otw python3 main.py -d precomputing -p ind_75000_3_product.csv -c ind_75000_3_customer.csv
 #otw python3 main.py -d precomputing -p ant_75000_3_product.csv -c ant_75000_3_customer.csv
 #otw python3 main.py -d precomputing -p fc_75000_3_product.csv -c fc_75000_3_customer.csv
 

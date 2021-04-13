@@ -134,7 +134,7 @@ def get_history_file(p_file):
     if not os.path.exists(path):
         os.mkdir(path)
     ext = ".json"
-    history_file = path + "history_" + str(dim_size) + "_dim"  + ext
+    history_file = path + get_filename(p_file, c_file) + ext
     return history_file
 
 def get_products(p_file):

@@ -66,7 +66,7 @@ def precomputing(p_file, c_file, grid_size):
     # import product and customer files as queue 
     queue = Queue(p_file, c_file)
     # import history data for precomputation efficiency - stored based on dim_size
-    history_file = get_history_file(p_file)
+    history_file = get_history_file(p_file, c_file)
     if os.path.exists(history_file):
         history_data = import_history(history_file)
     else:

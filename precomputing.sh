@@ -7,7 +7,7 @@
 #python3 main.py -d precomputing -p fc_300000_3_product.csv -c fc_300000_3_customer.csv
 
 #udah python3 main.py -d precomputing -p ind_100000_2_product.csv -c ind_100000_2_customer.csv 
-#otw python3 main.py -d precomputing -p ant_100000_2_product.csv -c ant_100000_2_customer.csv 
+#udah python3 main.py -d precomputing -p ant_100000_2_product.csv -c ant_100000_2_customer.csv 
 #otw python3 main.py -d precomputing -p fc_100000_2_product.csv -c fc_100000_2_customer.csv
 
 #python3 main.py -d precomputing -p ind_100000_7_product.csv -c ind_100000_7_customer.csv

@@ -127,9 +127,8 @@ def get_pbox_file(p_file, c_file):
     pbox_file = path + get_filename(p_file, c_file) + ext
     return pbox_file
 
-def get_history_file(p_file):
+def get_history_file(p_file, c_file):
     path = os.getenv("JSON_PATH")
-    dim_size = p_file.split("_")[2]
     # handle if directory is not exist 
     if not os.path.exists(path):
         os.mkdir(path)

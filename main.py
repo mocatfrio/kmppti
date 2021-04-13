@@ -64,8 +64,8 @@ def main(argv):
 def precomputing(p_file, c_file, grid_size):
     # import product and customer files as queue 
     queue = Queue(p_file, c_file)
-    # import history data for precomputation efficiency
-    history_file = os.getenv("JSON_PATH")
+    # import history data for precomputation efficiency - stored based on dim_size
+    history_file = get_history_file(p_file)
     if os.path.exists(history_file):
         history_data = import_history(history_file)
     else:
@@ -125,6 +125,16 @@ def get_pbox_file(p_file, c_file):
     ext = ".csv"
     pbox_file = path + get_filename(p_file, c_file) + ext
     return pbox_file
+
+def get_history_file(p_file):
+    path = os.getenv("JSON_PATH")
+    dim_size = p_file.split("_")[2]
+    # handle if directory is not exist 
+    if not os.path.exists(path):
+        os.mkdir(path)
+    ext = ".json"
+    history_file = path + "history_" + str(dim_size) + "_dim"  + ext
+    return history_file
 
 def get_products(p_file):
     with open(p_file) as csv_file:

@@ -5,7 +5,8 @@
 #   rm -rf ${MY_DIR}*
 # fi
 
-# python3 main.py -d precomputing -p ind_5_2_product.csv -c ind_5_2_customer.csv 
-python3 main.py -d precomputing -p ind_5000_2_product.csv -c ind_5000_2_customer.csv 
+python3 main.py -d precomputing -p ind_5_2_product.csv -c ind_5_2_customer.csv 
+# python3 main.py -d precomputing -p ind_5000_3_product.csv -c ind_5000_3_customer.csv 
+# python3 main.py -d precomputing -p ind_2000_3_product.csv -c ind_2000_3_customer.csv 
 
 

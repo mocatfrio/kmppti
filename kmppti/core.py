@@ -1,4 +1,5 @@
 # standard library
+import sys 
 from collections import Counter
 
 # 3rd party packages 
@@ -34,20 +35,23 @@ def process(queue, grid_size, history):
     grid = Grid(grid_size, dim_size, max_val)
     rtree = RTree(dim_size, max_boundary)
     pbox = PandoraBox(max_ts, product_size)
+    # to mark whether the key ever does not match history
+    key_is_different = False
     # start processing 
     now_ts = 0
     while now_ts <= max_ts:
         objs = queue.pop(now_ts)
         for obj in objs:
-            id_data = "_".join([str(ob) for ob in obj])
+            id_data = "_".join([str(obj[0])] + [str(o) for o in obj[2:]])
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 # get dynamic skyline
-                if history and id_data in history:
+                if use_history(history, id_data) and not key_is_different:
                     dsl_result = history[id_data]["dsl_result"]
                     dominance_boundary = history[id_data]["dominance_boundary"]
                 else:
+                    key_is_different = True
                     # get search space 
                     space = grid.search_space(obj[ID], obj[VALUE])
                     # get products on the search space
@@ -77,9 +81,10 @@ def process(queue, grid_size, history):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 # get reverse skyline 
-                if history and id_data in history:
+                if use_history(history, id_data) and not key_is_different:
                     rsl_result = {int(key):val for key,val in history[id_data]["rsl_result"].items()}
                 else:
+                    key_is_different = True
                     # search candidate - not dominated by dominance boundaries  
                     c_id = rtree.search(p_id=obj[ID], p_val=obj[VALUE])     # return [c_id, c_id, c_id]
                     # get customers data based on candidate id                      
@@ -116,10 +121,11 @@ def process(queue, grid_size, history):
                         # if current dsl result and neighbor's dsl result are not same
                         if Counter([dsl[0] for dsl in dsl_result]) != Counter([dsl[0] for dsl in c_dsl_result]):
                             sub_id_data = "_".join([str(c_id), str(c_value)])
-                            if history and id_data in history and sub_id_data in history[id_data]:
+                            if use_history(history, id_data, sub_id_data) and not key_is_different:
                                 dsl_result = history[id_data][sub_id_data]["dsl_result"]
                                 dominance_boundary = history[id_data][sub_id_data]["dominance_boundary"]
                             else:
+                                key_is_different = True
                                 dsl_result = get_unique_list(dsl_result + c_dsl_result)
                                 # recompute dsl skyline 
                                 products = {c_data[0]: {"value": c_data[1]} for c_data in dsl_result}
@@ -171,3 +177,10 @@ def update_dsl_result(grid, rtree, c_id, c_value, current_dsl_result, new_dsl_re
     rtree.update(c_id, c_value, new_dsl_result, node_id)
     # save dsl result in the grid 
     grid.update_customer(c_id, new_dsl_result, dominance_boundary, node_id)
+
+def use_history(history, id_data, sub_id_data=None):
+    result = history and id_data in history
+    if sub_id_data:
+        result = result and sub_id_data in history[id_data]
+    return result
+    

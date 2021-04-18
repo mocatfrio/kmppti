@@ -149,6 +149,7 @@ def process(queue, grid_size, history_file=None, history_file_editable=None):
                                 }
                             # update dsl result
                             update_dsl_result(grid, rtree, c_id, c_value, c_dsl_result, dsl_result, dominance_boundary, node_id)
+            counter += 1
             history_counter += 1
             if history_counter == 1000:
                 # export history data 

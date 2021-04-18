@@ -13,8 +13,8 @@ from prettyprinter import pprint
 # local source
 from kmppti.queue import Queue
 from kmppti.logger import Logger
-from kmppti.kmppti import process
-from kmppti.naive import process
+from kmppti.kmppti import process as kmppti_process
+from kmppti.naive import process as naive_process
 
 
 load_dotenv()
@@ -65,7 +65,10 @@ def main(argv):
     log = Logger(os.getenv("LOG_PATH"), p_file, [command, k, grid_size, time_start, time_end])
     log.start()
     # run method 
-    if is_online_kmppti(command):
+    if is_naive(command):
+        result = naive(p_file, c_file, k, grid_size, time_start, time_end)
+        pprint(result)
+    elif is_online_kmppti(command):
         result = online_kmppti(p_file, c_file, k, grid_size, time_start, time_end)
         pprint(result)
     elif is_precomputing(command):
@@ -78,11 +81,31 @@ def main(argv):
     log.write()
 
 
+def naive(p_file, c_file, k, grid_size, time_start, time_end):
+    # import product and customer files as queue 
+    queue = Queue(p_file, c_file)
+    # precomputing
+    pbox_data = np.array(naive_process(queue, grid_size))
+    # get pbox data based on the query time interval
+    pbox_data = pbox_data[0 : len(pbox_data), time_start - 1 : time_end - 1]
+    # get k products with the largest total market contribution
+    result = sort(np.sum(pbox_data, axis = 1), k)
+    # get product's name 
+    label = get_products(p_file)
+    # reshape result 
+    json = [
+        {
+            "label": label[result[i][0]], 
+            "market_contribution": result[i][1]
+        } for i in range(len(result))
+    ]
+    return json 
+
 def online_kmppti(p_file, c_file, k, grid_size, time_start, time_end):
     # import product and customer files as queue 
     queue = Queue(p_file, c_file)
     # precomputing
-    pbox_data = np.array(process(queue, grid_size))
+    pbox_data = np.array(kmppti_process(queue, grid_size))
     # get pbox data based on the query time interval
     pbox_data = pbox_data[0 : len(pbox_data), time_start - 1 : time_end - 1]
     # get k products with the largest total market contribution
@@ -111,7 +134,7 @@ def precomputing(p_file, c_file, grid_size, history_file, history_file_editable)
     # import product and customer files as queue 
     queue = Queue(p_file, c_file)
     # precomputing
-    pbox_data = process(queue, grid_size, history_file, history_file_editable)
+    pbox_data = kmppti_process(queue, grid_size, history_file, history_file_editable)
     print("Successfully precomputed data!")
     # export pbox data 
     pbox_file = get_pbox_file(p_file, c_file)
@@ -199,6 +222,8 @@ def is_online_kmppti(command):
 def is_offline_kmppti(command):
     return command == "offline_kmppti"
 
+def is_naive(command):
+    return command == "naive"
 
 if __name__ == '__main__':
     main(sys.argv[1:])

@@ -27,7 +27,7 @@ VALUE = -1
 
 """ Precomputing function using naive """
 
-def process(queue, grid_size, history_file=None, history_file_editable=None):
+def process(queue, grid_size):
     # get information from data 
     max_ts = queue.get_max_ts()
     max_val = queue.get_max_val()

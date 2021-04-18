@@ -1,5 +1,7 @@
 # standard library
 import sys 
+import os
+import json
 from collections import Counter
 
 # 3rd party packages 
@@ -10,9 +12,10 @@ from kmppti.grid import Grid
 from kmppti.rtree import RTree
 from kmppti.pandora_box import PandoraBox
 from kmppti.skyline import dynamic_skyline, reverse_skyline
-from kmppti.constant import PRODUCT, CUSTOMER
+from kmppti.constant import *
 
-# constant function 
+
+# constant variables 
 INSERTION = 0
 DELETION = 1
 TS = 0
@@ -24,37 +27,43 @@ VALUE = -1
 
 """ Precomputing function """
 
-def process(queue, grid_size, history):
+def process(queue, grid_size, history_file=None, history_file_editable=None):
     # get information from data 
     max_ts = queue.get_max_ts()
     max_val = queue.get_max_val()
     dim_size = queue.get_dim_size()
     product_size = queue.get_product_size()
     max_boundary = queue.get_max_boundary()
-    data_size = queue.get_data_size()
+    queue_size = queue.get_queue_size()
+
     # initialization
     grid = Grid(grid_size, dim_size, max_val)
     rtree = RTree(dim_size, max_boundary)
     pbox = PandoraBox(max_ts, product_size)
-    # to mark whether the key ever does not match history
-    key_is_different = False
-    counter = 0
+
+    # import history file 
+    history = {}
+    if history_file:
+        if os.path.exists(history_file):
+            history = import_history(history_file)
+    history_counter = 0 
+
     # start processing 
+    counter = 0
     now_ts = 0
     while now_ts <= max_ts:
         objs = queue.pop(now_ts)
         for obj in objs:
-            progress(counter, data_size)
+            progress(counter, queue_size)
             id_data = "_".join([str(obj[0])] + [str(o) for o in obj[2:]])
             if customer_insertion(obj[TYPE], obj[ACT]):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 # get dynamic skyline
-                if use_history(history, id_data) and not key_is_different:
+                if use_history(history, id_data):
                     dsl_result = history[id_data]["dsl_result"]
                     dominance_boundary = history[id_data]["dominance_boundary"]
                 else:
-                    key_is_different = True
                     # get search space 
                     space = grid.search_space(obj[ID], obj[VALUE])
                     # get products on the search space
@@ -84,10 +93,9 @@ def process(queue, grid_size, history):
                 # insert to grid 
                 grid.insert(obj[ID], obj[TYPE], obj[VALUE])
                 # get reverse skyline 
-                if use_history(history, id_data) and not key_is_different:
+                if use_history(history, id_data):
                     rsl_result = {int(key):val for key,val in history[id_data]["rsl_result"].items()}
                 else:
-                    key_is_different = True
                     # search candidate - not dominated by dominance boundaries  
                     c_id = rtree.search(p_id=obj[ID], p_val=obj[VALUE])     # return [c_id, c_id, c_id]
                     # get customers data based on candidate id                      
@@ -124,11 +132,10 @@ def process(queue, grid_size, history):
                         # if current dsl result and neighbor's dsl result are not same
                         if Counter([dsl[0] for dsl in dsl_result]) != Counter([dsl[0] for dsl in c_dsl_result]):
                             sub_id_data = "_".join([str(c_id), str(c_value)])
-                            if use_history(history, id_data, sub_id_data) and not key_is_different:
+                            if use_history(history, id_data, sub_id_data):
                                 dsl_result = history[id_data][sub_id_data]["dsl_result"]
                                 dominance_boundary = history[id_data][sub_id_data]["dominance_boundary"]
                             else:
-                                key_is_different = True
                                 dsl_result = get_unique_list(dsl_result + c_dsl_result)
                                 # recompute dsl skyline 
                                 products = {c_data[0]: {"value": c_data[1]} for c_data in dsl_result}
@@ -142,14 +149,19 @@ def process(queue, grid_size, history):
                                 }
                             # update dsl result
                             update_dsl_result(grid, rtree, c_id, c_value, c_dsl_result, dsl_result, dominance_boundary, node_id)
-
-            counter += 1
+            history_counter += 1
+            if history_counter == 1000:
+                # export history data 
+                if history_file_editable:
+                    export_history(history_file, history)
+                    print("Export", history_file)
+                history_counter = 0
         # get all customers
         customers = grid.get_data(CUSTOMER)
         # update pbox 
         pbox.update(now_ts, customers)
         now_ts += 1
-    return pbox.get(), history
+    return pbox.get()
 
 """ Helper Function """
 
@@ -189,68 +201,77 @@ def use_history(history, id_data, sub_id_data=None):
         result = result and sub_id_data in history[id_data]
     return result
     
-def progress(counter, data_size):
+def progress(counter, queue_size):
     # progress notif
     if counter == 0:
         print("================================")
         print("Progress 0%")
-    elif counter == round(5/100 * data_size):
+    elif counter == round(5/100 * queue_size):
         print("================================")
         print("Progress 5%")
-    elif counter == round(10/100 * data_size):
+    elif counter == round(10/100 * queue_size):
         print("================================")
         print("Progress 10%")
-    elif counter == round(15/100 * data_size):
+    elif counter == round(15/100 * queue_size):
         print("================================")
         print("Progress 15%")
-    elif counter == round(20/100 * data_size):
+    elif counter == round(20/100 * queue_size):
         print("================================")
         print("Progress 20%")
-    elif counter == round(25/100 * data_size):
+    elif counter == round(25/100 * queue_size):
         print("================================")
         print("Progress 25%")
-    elif counter == round(30/100 * data_size):
+    elif counter == round(30/100 * queue_size):
         print("================================")
         print("Progress 30%")
-    elif counter == round(35/100 * data_size):
+    elif counter == round(35/100 * queue_size):
         print("================================")
         print("Progress 35%")
-    elif counter == round(40/100 * data_size):
+    elif counter == round(40/100 * queue_size):
         print("================================")
         print("Progress 40%")
-    elif counter == round(45/100 * data_size):
+    elif counter == round(45/100 * queue_size):
         print("================================")
         print("Progress 45%")
-    elif counter == round(50/100 * data_size):
+    elif counter == round(50/100 * queue_size):
         print("================================")
         print("Progress 50%")
-    elif counter == round(55/100 * data_size):
+    elif counter == round(55/100 * queue_size):
         print("================================")
         print("Progress 55%")
-    elif counter == round(60/100 * data_size):
+    elif counter == round(60/100 * queue_size):
         print("================================")
         print("Progress 60%")
-    elif counter == round(65/100 * data_size):
+    elif counter == round(65/100 * queue_size):
         print("================================")
         print("Progress 65%")
-    elif counter == round(70/100 * data_size):
+    elif counter == round(70/100 * queue_size):
         print("================================")
         print("Progress 70%")
-    elif counter == round(75/100 * data_size):
+    elif counter == round(75/100 * queue_size):
         print("================================")
         print("Progress 75%")
-    elif counter == round(80/100 * data_size):
+    elif counter == round(80/100 * queue_size):
         print("================================")
         print("Progress 80%")
-    elif counter == round(85/100 * data_size):
+    elif counter == round(85/100 * queue_size):
         print("================================")
         print("Progress 85%")
-    elif counter == round(90/100 * data_size):
+    elif counter == round(90/100 * queue_size):
         print("================================")
         print("Progress 90%")
-    elif counter == round(95/100 * data_size):
+    elif counter == round(95/100 * queue_size):
         print("================================")
         print("Progress 95%")
-    elif counter == data_size:
+    elif counter == queue_size:
         print("================================")
         print("Progress 100%")
+
+def import_history(history_file):
+    with open(history_file) as json_file:
+        history = json.load(json_file)
+    return history
+
+def export_history(history_file, history):
+    with open(history_file, 'w') as json_file:
+        json.dump(history, json_file)

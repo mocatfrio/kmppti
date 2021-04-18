@@ -1,0 +1,13 @@
+Data Type,Data Size,Dim Size,k,Grid Size,TS Start,TS End,Runtime (S),Mem Usage (MB)
+ind,5,2,precomputing,-,3,-,-,00:00:00.01,23.9453125
+ind,5000,3,precomputing,-,3,-,-,00:37:03.29,121.140625
+ind,5,2,precomputing,-,3,-,-,00:00:00.01,24.19921875
+ind,5,2,precomputing,-,3,-,-,00:00:00.01,24.2734375
+ind,5,2,precomputing,-,3,-,-,00:00:00.01,24.234375
+ind,100000,2,precomputing,-,3,-,-,08:12:46.23,324.84765625
+ant,75000,3,precomputing,-,3,-,-,14:34:05.30,366.22265625
+ind,2000,3,precomputing,-,3,-,-,00:23:40.14,88.6484375
+ind,2000,3,precomputing,-,3,-,-,00:00:27.23,42.41015625
+ind,2000,3,precomputing,-,3,-,-,00:00:28.19,41.9140625
+ant,100000,3,precomputing,-,3,-,-,08:18:13.12,300.234375
+ant,100000,3,precomputing,-,3,-,-,11:35:47.93,341.06640625

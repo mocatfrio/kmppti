@@ -4,3 +4,4 @@ venv/
 pbox/
 history/
 log.csv
+nohup.out

@@ -3,32 +3,60 @@
 
 
 # 1000 
-python3 main.py -c generate -t ind -n 1000 -d 3 -l product
-python3 main.py -c generate -t ind -n 1000 -d 3 -l customer
-python3 main.py -c generate -t ant -n 1000 -d 3 -l product
-python3 main.py -c generate -t ant -n 1000 -d 3 -l customer
-python3 main.py -c generate -t fc -n 1000 -d 3 -l product
-python3 main.py -c generate -t fc -n 1000 -d 3 -l customer
+# python3 main.py -c generate -t ind -n 1000 -d 3 -l product
+# python3 main.py -c generate -t ind -n 1000 -d 3 -l customer
+# python3 main.py -c generate -t ant -n 1000 -d 3 -l product
+# python3 main.py -c generate -t ant -n 1000 -d 3 -l customer
+# python3 main.py -c generate -t fc -n 1000 -d 3 -l product
+# python3 main.py -c generate -t fc -n 1000 -d 3 -l customer
 
-python3 main.py -c prepare -f ind_1000_3_product.csv
-python3 main.py -c prepare -f ind_1000_3_customer.csv
-python3 main.py -c prepare -f ant_1000_3_product.csv
-python3 main.py -c prepare -f ant_1000_3_customer.csv
-python3 main.py -c prepare -f fc_1000_3_product.csv
-python3 main.py -c prepare -f fc_1000_3_customer.csv
+# python3 main.py -c prepare -f ind_1000_3_product.csv
+# python3 main.py -c prepare -f ind_1000_3_customer.csv
+# python3 main.py -c prepare -f ant_1000_3_product.csv
+# python3 main.py -c prepare -f ant_1000_3_customer.csv
+# python3 main.py -c prepare -f fc_1000_3_product.csv
+# python3 main.py -c prepare -f fc_1000_3_customer.csv
 
 # Dimension 
 python3 main.py -c generate -t ind -n 5000 -d 2 -l product
 python3 main.py -c generate -t ind -n 5000 -d 2 -l customer
+python3 main.py -c generate -t ind -n 5000 -d 5 -l product
+python3 main.py -c generate -t ind -n 5000 -d 5 -l customer
+python3 main.py -c generate -t ind -n 5000 -d 7 -l product
+python3 main.py -c generate -t ind -n 5000 -d 7 -l customer
+
+python3 main.py -c generate -t ant -n 5000 -d 2 -l product
+python3 main.py -c generate -t ant -n 5000 -d 2 -l customer
 python3 main.py -c generate -t ant -n 5000 -d 5 -l product
 python3 main.py -c generate -t ant -n 5000 -d 5 -l customer
+python3 main.py -c generate -t ant -n 5000 -d 7 -l product
+python3 main.py -c generate -t ant -n 5000 -d 7 -l customer
+
+python3 main.py -c generate -t fc -n 5000 -d 2 -l product
+python3 main.py -c generate -t fc -n 5000 -d 2 -l customer
+python3 main.py -c generate -t fc -n 5000 -d 5 -l product
+python3 main.py -c generate -t fc -n 5000 -d 5 -l customer
 python3 main.py -c generate -t fc -n 5000 -d 7 -l product
 python3 main.py -c generate -t fc -n 5000 -d 7 -l customer
 
 python3 main.py -c prepare -f ind_5000_2_product.csv
 python3 main.py -c prepare -f ind_5000_2_customer.csv
+python3 main.py -c prepare -f ind_5000_5_product.csv
+python3 main.py -c prepare -f ind_5000_5_customer.csv
+python3 main.py -c prepare -f ind_5000_7_product.csv
+python3 main.py -c prepare -f ind_5000_7_customer.csv
+
+python3 main.py -c prepare -f ant_5000_2_product.csv
+python3 main.py -c prepare -f ant_5000_2_customer.csv
 python3 main.py -c prepare -f ant_5000_5_product.csv
 python3 main.py -c prepare -f ant_5000_5_customer.csv
+python3 main.py -c prepare -f ant_5000_7_product.csv
+python3 main.py -c prepare -f ant_5000_7_customer.csv
+
+python3 main.py -c prepare -f fc_5000_2_product.csv
+python3 main.py -c prepare -f fc_5000_2_customer.csv
+python3 main.py -c prepare -f fc_5000_5_product.csv
+python3 main.py -c prepare -f fc_5000_5_customer.csv
 python3 main.py -c prepare -f fc_5000_7_product.csv
 python3 main.py -c prepare -f fc_5000_7_customer.csv
 

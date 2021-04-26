@@ -1,0 +1,5 @@
+Data Type,Data Size,Dim Size,Command,k,Grid Size,TS Start,TS End,Runtime (S),Mem Usage (MB)
+ind,2000,3,online_kmppti,50,3,100,200,00:05:49.58,46.6953125
+ind,5000,3,online_kmppti,50,3,100,200,00:43:42.74,66.484375
+ind,7000,3,online_kmppti,50,3,100,200,01:22:13.74,79.0703125
+ind,10000,3,online_kmppti,50,3,100,200,02:57:15.75,97.04296875

@@ -1,0 +1,2 @@
+Data Type,Data Size,Dim Size,k,Grid Size,TS Start,TS End,Runtime (S),Mem Usage (MB)
+ant,2000,3,online_kmppti,50,3,100,200,00:00:42.20,57.44921875
